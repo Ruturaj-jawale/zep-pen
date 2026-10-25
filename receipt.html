@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zep Pen - Official Order Receipt & Invoice</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root {
+      --primary: #0056b3;
+      --primary-dark: #003d82;
+      --dark: #0f172a;
+      --slate-600: #475569;
+      --slate-400: #94a3b8;
+      --slate-200: #e2e8f0;
+      --slate-100: #f1f5f9;
+      --green: #15803d;
+      --wa-green: #25d366;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background-color: #f1f5f9;
+      color: var(--dark);
+      padding: 20px 12px 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* Top Action Bar (Non-printable) */
+    .receipt-top-bar {
+      max-width: 640px;
+      width: 100%;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      padding: 10px 16px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .btn-back {
+      background: #ffffff;
+      color: var(--dark);
+      border: 1px solid var(--slate-200);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .btn-print {
+      background: var(--dark);
+      color: #ffffff;
+    }
+
+    .btn-wa {
+      background: var(--wa-green);
+      color: #ffffff;
+      box-shadow: 0 2px 8px rgba(37,211,102,0.3);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    /* Main Receipt Container */
+    .receipt-card {
+      max-width: 640px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--slate-200);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Decorative top color bar matching the logo */
+    .receipt-strip {
+      height: 6px;
+      background: linear-gradient(90deg, #0056b3, #0084ff, #0f172a);
+    }
+
+    .receipt-body {
+      padding: 28px 24px;
+    }
+
+    /* Brand Header */
+    .brand-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 2px dashed var(--slate-200);
+      padding-bottom: 20px;
+      margin-bottom: 20px;
+    }
+
+    .brand-logo-img {
+      width: 82px;
+      height: 82px;
+      object-fit: contain;
+      border-radius: 12px;
+    }
+
+    .brand-details {
+      flex: 1;
+    }
+
+    .brand-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--dark);
+      line-height: 1.1;
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      color: var(--slate-600);
+      margin-top: 3px;
+    }
+
+    .brand-leadership {
+      margin-top: 6px;
+      font-size: 0.78rem;
+      background: #eff6ff;
+      color: var(--primary);
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+    }
+
+    .receipt-tag {
+      text-align: right;
+    }
+
+    .status-badge {
+      display: inline-block;
+      background: #dcfce7;
+      color: var(--green);
+      font-weight: 800;
+      font-size: 0.75rem;
+      padding: 5px 12px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border: 1px solid rgba(22, 163, 74, 0.3);
+    }
+
+    .invoice-no {
+      font-family: 'Courier Prime', monospace;
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--dark);
+      margin-top: 6px;
+    }
+
+    .invoice-date {
+      font-size: 0.75rem;
+      color: var(--slate-400);
+    }
+
+    /* Customer Info Grid */
+    .customer-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      background: var(--slate-100);
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 0.84rem;
+    }
+
+    .info-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--slate-600);
+      margin-bottom: 2px;
+    }
+
+    .info-val {
+      font-weight: 700;
+      color: var(--dark);
+      word-break: break-word;
+    }
+
+    .address-full {
+      grid-column: 1 / -1;
+      border-top: 1px dashed var(--slate-200);
+      padding-top: 8px;
+      margin-top: 2px;
+    }
+
+    /* Table */
+    .table-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--slate-600);
+      margin-bottom: 10px;
+    }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 18px;
+    }
+
+    .items-table th {
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--slate-600);
+      padding: 8px 6px;
+      border-bottom: 1.5px solid var(--slate-200);
+    }
+
+    .items-table td {
+      padding: 10px 6px;
+      font-size: 0.88rem;
+      border-bottom: 1px solid var(--slate-100);
+      vertical-align: middle;
+    }
+
+    .item-variant {
+      font-size: 0.72rem;
+      color: var(--primary);
+      font-weight: 600;
+      display: block;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    /* Calculations breakdown */
+    .summary-box {
+      border-top: 2px solid var(--slate-200);
+      padding-top: 12px;
+      margin-bottom: 20px;
+    }
+
+    .sum-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.86rem;
+      margin-bottom: 6px;
+      color: var(--slate-600);
+    }
+
+    .sum-row.delivery-row {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .delivery-pill {
+      background: #dcfce7;
+      color: var(--green);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+
+    .grand-total-row {
+      border-top: 2px dashed var(--slate-200);
+      padding-top: 10px;
+      margin-top: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .grand-total-label {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--dark);
+    }
+
+    .grand-total-val {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    /* Payment & QR Footer */
+    .receipt-footer-box {
+      background: #fafaf9;
+      border: 1px solid var(--slate-200);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    .receipt-qr-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    #receiptQrCode {
+      background: #ffffff;
+      padding: 6px;
+      border-radius: 8px;
+      border: 1px solid var(--slate-200);
+      width: 72px;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-text-info {
+      font-size: 0.75rem;
+      color: var(--slate-600);
+      line-height: 1.4;
+    }
+
+    .signature-box {
+      text-align: right;
+    }
+
+    .sig-seal {
+      font-family: 'Courier Prime', monospace;
+      font-weight: 700;
+      font-size: 0.8rem;
+      color: var(--dark);
+    }
+
+    .sig-sub {
+      font-size: 0.7rem;
+      color: var(--slate-400);
+    }
+
+    .thank-you-note {
+      text-align: center;
+      font-size: 0.76rem;
+      color: var(--slate-600);
+      margin-top: 8px;
+    }
+
+    /* Print styles */
+    @media print {
+      body {
+        background: #ffffff;
+        padding: 0;
+      }
+      .receipt-top-bar {
+        display: none !important;
+      }
+      .receipt-card {
+        box-shadow: none;
+        border: 1px solid #ccc;
+        max-width: 100%;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .receipt-body {
+        padding: 20px 16px;
+      }
+      .brand-section {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .receipt-tag {
+        text-align: left;
+        margin-top: 8px;
+      }
+      .customer-grid {
+        grid-template-columns: 1fr;
+      }
+      .receipt-footer-box {
+        flex-direction: column;
+        text-align: center;
+      }
+      .signature-box {
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Action Bar -->
+  <div class="receipt-top-bar">
+    <a href="index.html" class="btn btn-back">
+      <i class="fa-solid fa-arrow-left"></i> Back to Store
+    </a>
+    <div style="display: flex; gap: 8px;">
+      <button onclick="window.print()" class="btn btn-print">
+        <i class="fa-solid fa-print"></i> Print / PDF
+      </button>
+      <button id="btnShareWhatsApp" onclick="sendWhatsAppFromReceipt()" class="btn btn-wa">
+        <i class="fa-brands fa-whatsapp"></i> WhatsApp
+      </button>
+    </div>
+  </div>
+
+  <!-- Receipt Container -->
+  <div class="receipt-card" id="printableReceipt">
+    <div class="receipt-strip"></div>
+    <div class="receipt-body">
+      
+      <!-- Brand & Header -->
+      <div class="brand-section">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <img src="logo.png" alt="Zep Pen Logo" class="brand-logo-img">
+          <div class="brand-details">
+            <h1 class="brand-title">ZEP PEN</h1>
+            <p class="brand-subtitle">Smooth Writing Instruments • Flat ₹1 Delivery</p>
+            <div class="brand-leadership">
+              <i class="fa-solid fa-shield-halved"></i> Boss: <strong>samarthraje</strong> | CEO: <strong>samyak</strong>
+            </div>
+          </div>
+        </div>
+        <div class="receipt-tag">
+          <span class="status-badge" id="receiptStatus">ORDER CONFIRMED</span>
+          <div class="invoice-no" id="invoiceNum">#ZEP-000000</div>
+          <div class="invoice-date" id="invoiceDate">--</div>
+        </div>
+      </div>
+
+      <!-- Customer & Delivery Info -->
+      <div class="customer-grid">
+        <div>
+          <div class="info-label">Customer Name</div>
+          <div class="info-val" id="custNameVal">Valued Customer</div>
+        </div>
+        <div>
+          <div class="info-label">WhatsApp / Phone</div>
+          <div class="info-val" id="custPhoneVal">+91 --</div>
+        </div>
+        <div>
+          <div class="info-label">Paid To Phone</div>
+          <div class="info-val">99220 91507</div>
+        </div>
+        <div>
+          <div class="info-label">Transaction / UTR ID</div>
+          <div class="info-val" id="custTransIdVal" style="color:var(--primary); font-family:'Courier Prime',monospace;">--</div>
+        </div>
+        <div class="address-full">
+          <div class="info-label"><i class="fa-solid fa-location-dot"></i> Delivery Address</div>
+          <div class="info-val" id="custAddressVal">--</div>
+        </div>
+      </div>
+
+      <!-- Itemized Table -->
+      <div class="table-title">Order Particulars</div>
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width: 8%;">#</th>
+            <th style="width: 52%;">Item Description</th>
+            <th class="text-center" style="width: 15%;">Qty</th>
+            <th class="text-right" style="width: 25%;">Amount</th>
+          </tr>
+        </thead>
+        <tbody id="invoiceItemsBody">
+          <!-- Populated by JS -->
+        </tbody>
+      </table>
+
+      <!-- Summary & Delivery Fee -->
+      <div class="summary-box">
+        <div class="sum-row">
+          <span>Items Subtotal</span>
+          <span id="invoiceSubtotal">₹0.00</span>
+        </div>
+        <div class="sum-row delivery-row">
+          <span><i class="fa-solid fa-truck-fast"></i> Express Doorstep Delivery</span>
+          <span class="delivery-pill">₹1.00</span>
+        </div>
+        <div class="sum-row" style="font-size: 0.8rem; color: #64748b;">
+          <span>Payment Mode</span>
+          <span id="invoicePayMode">UPI Transfer</span>
+        </div>
+        <div class="grand-total-row">
+          <span class="grand-total-label">Grand Total Paid/Payable</span>
+          <span class="grand-total-val" id="invoiceGrandTotal">₹1.00</span>
+        </div>
+      </div>
+
+      <!-- Footer with QR Code & Leadership Stamp -->
+      <div class="receipt-footer-box">
+        <div class="receipt-qr-wrap">
+          <div id="receiptQrCode"></div>
+          <div class="qr-text-info">
+            <strong>Scan to verify order</strong><br>
+            Official WhatsApp Line: <strong>99220 91507</strong><br>
+            UPI Number: <strong>99220 91507</strong> (GPay / PhonePe / Paytm)
+          </div>
+        </div>
+        <div class="signature-box">
+          <div class="sig-seal">ZEP PEN VERIFIED</div>
+          <div class="sig-sub">Boss samarthraje & CEO samyak</div>
+        </div>
+      </div>
+
+      <p class="thank-you-note">
+        ✨ Thank you for choosing <strong>Zep Pen</strong>! For rapid delivery updates, WhatsApp us at <strong>99220 91507</strong>.
+      </p>
+
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const savedData = localStorage.getItem("zeppen_last_order");
+      let order = null;
+
+      if (savedData) {
+        try { order = JSON.parse(savedData); } catch(e) { console.error(e); }
+      }
+
+      // Fallback demo order if none saved
+      if (!order) {
+        order = {
+          orderId: "ZEP-DEMO01",
+          date: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+          name: "Sample Customer",
+          phone: "9876543210",
+          address: "102, Zep Tower, Near MG Road, Pune - 411001",
+          transactionId: "TXN123456789",
+          items: [
+            { name: "Erasable pen",          variant: "Blue", qty: 2, price: 25 },
+            { name: "Butterflow black/blue", variant: "Blue", qty: 1, price: 10 }
+          ],
+          subtotal: 60,
+          deliveryCharge: 1,
+          grandTotal: 61
+        };
+      }
+
+      // Populate header fields
+      document.getElementById("invoiceNum").innerText      = "#" + order.orderId;
+      document.getElementById("invoiceDate").innerText     = order.date;
+      document.getElementById("custNameVal").innerText     = order.name;
+      document.getElementById("custPhoneVal").innerText    = order.phone;
+      document.getElementById("custAddressVal").innerText  = order.address;
+      document.getElementById("custTransIdVal").innerText  = order.transactionId || "Verified";
+      document.getElementById("invoicePayMode").innerText  = "Paid to 99220 91507";
+      document.getElementById("invoiceSubtotal").innerText = "₹" + order.subtotal;
+      document.getElementById("invoiceGrandTotal").innerText = "₹" + order.grandTotal;
+
+      // Build items table
+      const tbody = document.getElementById("invoiceItemsBody");
+      tbody.innerHTML = order.items.map((item, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td>
+            <strong>${item.name}</strong>
+            ${item.variant ? `<span class="item-variant">${item.variant} Ink</span>` : ""}
+          </td>
+          <td class="text-center">${item.qty} &times; ₹${item.price}</td>
+          <td class="text-right"><strong>₹${item.qty * item.price}</strong></td>
+        </tr>`).join("");
+
+      // Verification QR — links to WA with order ID
+      const qrEl = document.getElementById("receiptQrCode");
+      if (qrEl && typeof QRCode !== "undefined") {
+        qrEl.innerHTML = "";
+        try {
+          new QRCode(qrEl, {
+            text: "https://wa.me/919922091507?text=Verify%20Order%20" + encodeURIComponent(order.orderId),
+            width: 64, height: 64,
+            colorDark: "#0f172a", colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M
+          });
+        } catch(e) { console.error(e); }
+      }
+    });
+
+    function sendWhatsAppFromReceipt() {
+      const raw = localStorage.getItem("zeppen_last_order");
+      const order = raw ? JSON.parse(raw) : null;
+      if (!order) { window.open("https://wa.me/919922091507", "_blank"); return; }
+
+      let msg = "🛒 *ZEP PEN - ORDER RECEIPT* 🛒\n";
+      msg += "🧾 Order: #" + order.orderId + "\n";
+      msg += "👤 " + order.name + " (" + order.phone + ")\n";
+      msg += "📍 " + order.address + "\n";
+      msg += "💰 Total: ₹" + order.grandTotal + " (incl. ₹1 delivery)\n";
+      msg += "📲 Paid to: 99220 91507\n";
+      msg += "🔖 Txn ID: " + (order.transactionId || "Verified") + "\n";
+      msg += "Boss: samarthraje | CEO: samyak\nPlease confirm dispatch!";
+      window.open("https://wa.me/919922091507?text=" + encodeURIComponent(msg), "_blank");
+    }
+  </script>
+</body>
+</html>
