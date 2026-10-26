@@ -5,7 +5,7 @@
  * Boss: samarthraje  |  CEO: samyak
  */
 
-const DELIVERY_CHARGE = 1;
+const DELIVERY_CHARGE = 10;
 const WHATSAPP_NUMBER = "919922091507";
 const STORE_NAME      = "Zep Pen";
 
