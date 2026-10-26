@@ -128,7 +128,7 @@ function renderProducts() {
     var curVar = (inCart && inCart.variant) || prod.selectedVariant || (hasVar ? prod.variants[0] : null);
 
     html += '<div class="m-product-card ' + (qty > 0 ? "in-cart" : "") + '" id="pcard-' + prod.id + '">';
-    html += '<span class="card-delivery-tag"><i class="fa-solid fa-truck-fast"></i> ₹1 Delivery</span>';
+    html += '<span class="card-delivery-tag"><i class="fa-solid fa-truck-fast"></i> ₹10 Delivery</span>';
     html += '<div class="m-product-visual"><i class="' + prod.icon + ' m-pen-icon"></i></div>';
     html += '<div class="m-product-content">';
     html += '<span class="m-category-name">' + prod.category + '</span>';
